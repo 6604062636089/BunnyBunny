@@ -3,6 +3,7 @@ package bunnybunny;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.Random;
 
 public class GamePlayPanel extends JPanel {
 
@@ -13,16 +14,23 @@ public class GamePlayPanel extends JPanel {
     private JLabel jlbplayName = new JLabel();
     private Image bunny1Image;
     private Image bunny2Image;
+    private Image carrotImage;
     int x = 550; // Initial x position of the bunny
     int y = 450; // Initial y position of the bunny
     int moveAmount = 10; // Number of pixels to move per key press
     private boolean positionChanged = false;
 
+    // Carrot properties
+    private int carrotX;
+    private int carrotY;
+    private boolean carrotVisible = false;
+    private Random random = new Random(500);
+
     public GamePlayPanel(GameManager gameManager) {
         this.gameManager = gameManager;
         this.playerName = gameManager.getPlayerName(); // Retrieve player name from GameManager
         setLayout(null);
-        
+
         // Set focusable and request focus
         setFocusable(true);
 
@@ -30,6 +38,7 @@ public class GamePlayPanel extends JPanel {
         backgroundImage = new ImageIcon(getClass().getResource("BgGame.png")).getImage();
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
+        carrotImage = new ImageIcon(getClass().getResource("carrot.png")).getImage(); // Load carrot image
 
         // Display player name
         jlbplayName.setText(playerName);
@@ -37,25 +46,44 @@ public class GamePlayPanel extends JPanel {
         jlbplayName.setForeground(Color.BLACK);
         add(jlbplayName);
 
+        // Generate initial carrot position
+        generateCarrot();
+
         // Add key listener for movement
         addKeyListener(new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            positionChanged = false; // Reset flag on new key press
-            if (e.getKeyChar() == 'a' || e.getKeyChar() == 'A') {
-                x -= moveAmount;
-                positionChanged = true; // Mark position as changed
-            } else if (e.getKeyChar() == 'd' || e.getKeyChar() == 'D') {
-                x += moveAmount;
-                positionChanged = true; // Mark position as changed
+            @Override
+            public void keyPressed(KeyEvent e) {
+                positionChanged = false; // Reset flag on new key press
+                if (e.getKeyChar() == 'a' || e.getKeyChar() == 'A') {
+                    x -= moveAmount;
+                    positionChanged = true; // Mark position as changed
+                } else if (e.getKeyChar() == 'd' || e.getKeyChar() == 'D') {
+                    x += moveAmount;
+                    positionChanged = true; // Mark position as changed
+                }
+                x = Math.max(0, Math.min(x, getWidth() - 135));
+                if (positionChanged) {
+                    System.out.println("Bunny moved to x: " + x + ", y: " + y);
+                }
+                checkCarrotCollection(); // Check for carrot collection
+                repaint();
             }
-            x = Math.max(0, Math.min(x, getWidth() - 135));
-            if (positionChanged) {
-                System.out.println("Bunny moved to x: " + x + ", y: " + y);
+        });
+
+        // Timer for falling carrots
+        Timer timer = new Timer(50, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (carrotVisible) {
+                    carrotY += 5; // Move carrot downwards
+                    if (carrotY > getHeight()) {
+                        generateCarrot(); // Regenerate carrot if it goes off screen
+                    }
+                }
+                repaint(); // Repaint the panel to update carrot position
             }
-            repaint();
-        }
-    });
+        });
+        timer.start(); // Start the timer
 
         // Add mouse listener for focus
         addMouseListener(new MouseAdapter() {
@@ -79,6 +107,30 @@ public class GamePlayPanel extends JPanel {
         });
     }
 
+    // Generate carrot at a random position
+    private void generateCarrot() {
+        int panelWidth = getWidth();
+        if (panelWidth <= 50) {
+            // Handle case when panel width is too small
+            carrotX = 0; // Position carrot at the left edge
+        } else {
+            carrotX = random.nextInt(panelWidth - 50); // Random x position for carrot
+        }
+        carrotY = 0; // Start from the top of the panel
+        carrotVisible = true; // Set carrot to visible
+    }
+
+    // Check if the bunny has collected the carrot
+    private void checkCarrotCollection() {
+        Rectangle bunnyRect = new Rectangle(x, y, 135, 290);
+        Rectangle carrotRect = new Rectangle(carrotX, carrotY, 50, 50); // Assuming carrot is 50x50
+        if (bunnyRect.intersects(carrotRect)) {
+            System.out.println("Carrot collected!");
+            carrotVisible = false; // Hide carrot after collection
+            generateCarrot(); // Generate a new carrot
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -88,15 +140,16 @@ public class GamePlayPanel extends JPanel {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
 
-        if (positionChanged) {
-//            System.out.println("Drawing bunny at x: " + x + ", y: " + y);
-        }
-
         // Draw the selected bunny at the updated position
         if (selectedBunny == 1 && bunny1Image != null) {
             g.drawImage(bunny1Image, x, y, 135, 290, this);
         } else if (selectedBunny == 2 && bunny2Image != null) {
             g.drawImage(bunny2Image, x, y, 135, 290, this);
+        }
+
+        // Draw the carrot if it is visible
+        if (carrotVisible && carrotImage != null) {
+            g.drawImage(carrotImage, carrotX, carrotY, 50, 50, this); // Draw carrot at its position
         }
     }
 
