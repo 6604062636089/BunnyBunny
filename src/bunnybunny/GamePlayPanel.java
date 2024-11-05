@@ -8,8 +8,8 @@ import java.util.Random;
 public class GamePlayPanel extends JPanel implements Runnable {
 
     private GameManager gameManager;
-    private Image startIcon;  
-    private Rectangle startIconBounds;  
+    private Image startIcon;
+    private Rectangle startIconBounds;
     private String playerName = "player";
     private int selectedBunny;
     private int clickCounter = 0;
@@ -29,6 +29,9 @@ public class GamePlayPanel extends JPanel implements Runnable {
     private JLabel jlbcountCorrot = new JLabel();
     private volatile boolean running = true;
 
+    private JLabel countdownLabel = new JLabel(); // Label for countdown timer
+    private int countdownTime = 75; // Initial countdown time in seconds (1 minute 15 seconds)
+    private Timer countdownTimer; // Swing Timer for countdown
 
     // Carrot properties
     private int carrotX;
@@ -51,7 +54,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
         // Load images
         backgroundImage = new ImageIcon(getClass().getResource("BgGame.png")).getImage();
         startIcon = new ImageIcon(getClass().getResource("StartIcon.png")).getImage();
-        startIconBounds = new Rectangle(400, 200, 400, 250);  
+        startIconBounds = new Rectangle(400, 200, 400, 250);
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
         heartIcon = new ImageIcon(getClass().getResource("heart1.png")).getImage();
@@ -63,6 +66,27 @@ public class GamePlayPanel extends JPanel implements Runnable {
         jlbplayName.setBounds(980, 3, 1000, 100);
         jlbplayName.setForeground(Color.BLACK);
         add(jlbplayName);
+
+        // Display countdown timer
+        countdownLabel.setText("Time Left: " + formatTime(countdownTime));
+        countdownLabel.setBounds(10, 65, 200, 50);
+        countdownLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        countdownLabel.setForeground(Color.RED);
+        add(countdownLabel);
+
+        // Timer to handle countdown
+        countdownTimer = new Timer(1000, e -> {
+            countdownTime--;
+            countdownLabel.setText("Time Left: " + formatTime(countdownTime));
+            if (countdownTime <= 0) {
+                countdownTimer.stop();
+                gameManager.setCountCarrot(countCarrot);
+                gameManager.showGameEnd();
+                running = false; // Stop the threads
+                lifeCount -= 1;
+                System.out.println("Time Out!");
+            }
+        });
 
         // Generate initial carrot position
         generateCarrot();
@@ -97,20 +121,16 @@ public class GamePlayPanel extends JPanel implements Runnable {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(clickCounter == 0) {
+                if (clickCounter == 0) {
                     requestFocusInWindow(); // Request focus on mouse click
-                   
                     clickCounter += 1;
-                    
                     startIcon = null;
-                // Start thread
-                carrotThread.start();
-                bombThread.start();
+                    countdownTimer.start(); // Start countdown timer
+                    carrotThread.start();
+                    bombThread.start();
                 }
             }
         });
-        
-        
 
         // Add focus listener for debugging
         addFocusListener(new FocusAdapter() {
@@ -124,6 +144,12 @@ public class GamePlayPanel extends JPanel implements Runnable {
                 System.out.println("GamePlayPanel has lost focus");
             }
         });
+    }
+
+    private String formatTime(int seconds) {
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+        return String.format("%02d:%02d", minutes, secs);
     }
 
     // Generate carrot at a random position
@@ -165,24 +191,21 @@ public class GamePlayPanel extends JPanel implements Runnable {
     }
 
     private void checkBombCollection() {
-    Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
-    Rectangle bombRect = new Rectangle(bombX, bombY, 25, 25);
-    if (bunnyRect.intersects(bombRect)) {
-        if(lifeCount != 1) {
-            lifeCount -= 1;
-            bombVisible = false;
-            System.out.println("life count : " + lifeCount);
-        } else {
-            gameManager.setCountCarrot(countCarrot);
-            gameManager.showGameEnd();
-            running = false; // Stop the threads
-            lifeCount -= 1;
-            System.out.println("life count : " + lifeCount);
-            System.out.println("Bomb collected! Game Over!");
+        Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
+        Rectangle bombRect = new Rectangle(bombX, bombY, 25, 25);
+        if (bunnyRect.intersects(bombRect)) {
+            if (lifeCount != 1) {
+                lifeCount -= 1;
+                bombVisible = false;
+                System.out.println("life count : " + lifeCount);
+            } else {
+                gameManager.setCountCarrot(countCarrot);
+                gameManager.showGameEnd();
+                running = false; // Stop the threads
+                System.out.println("Bomb collected! Game Over!");
+            }
         }
     }
-}
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -192,7 +215,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
-        
+
         if (startIcon != null) {
             g.drawImage(startIcon, startIconBounds.x, startIconBounds.y, startIconBounds.width, startIconBounds.height, this);
         }
@@ -203,18 +226,17 @@ public class GamePlayPanel extends JPanel implements Runnable {
         } else if (selectedBunny == 2 && bunny2Image != null) {
             g.drawImage(bunny2Image, x, y, 135, 290, this);
         }
-        
+
         if (lifeCount == 3 && heartIcon != null) {
-            g.drawImage(heartIcon, 10, 25, 50, 50, this);
-            g.drawImage(heartIcon, 60, 25, 50, 50, this);
-            g.drawImage(heartIcon, 110, 25, 50, 50, this);
+            g.drawImage(heartIcon, 12, 25, 50, 50, this);
+            g.drawImage(heartIcon, 62, 25, 50, 50, this);
+            g.drawImage(heartIcon, 112, 25, 50, 50, this);
         } else if (lifeCount == 2 && heartIcon != null) {
-            g.drawImage(heartIcon, 10, 25, 50, 50, this);
-            g.drawImage(heartIcon, 60, 25, 50, 50, this);
+            g.drawImage(heartIcon, 12, 25, 50, 50, this);
+            g.drawImage(heartIcon, 62, 25, 50, 50, this);
         } else if (lifeCount == 1 && heartIcon != null) {
-            g.drawImage(heartIcon, 10, 25, 50, 50, this);
+            g.drawImage(heartIcon, 12, 25, 50, 50, this);
         }
-        
 
         // Draw the carrot if it is visible
         if (carrotVisible && carrotImage != null) {
@@ -250,7 +272,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
         jlbcountCorrot.setText(String.valueOf(countCarrot));
         jlbcountCorrot.setBounds(1120, 30, 50, 50);
         jlbcountCorrot.setForeground(Color.BLACK);
-        jlbcountCorrot.setFont(new Font("Arial", Font.BOLD, 35)); 
+        jlbcountCorrot.setFont(new Font("Arial", Font.BOLD, 35));
         add(jlbcountCorrot);
     }
 
@@ -296,4 +318,4 @@ public class GamePlayPanel extends JPanel implements Runnable {
             }
         }
     }
-} 
+}
