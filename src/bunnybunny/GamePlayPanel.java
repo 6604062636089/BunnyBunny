@@ -8,14 +8,19 @@ import java.util.Random;
 public class GamePlayPanel extends JPanel implements Runnable {
 
     private GameManager gameManager;
+    private Image startIcon;  
+    private Rectangle startIconBounds;  
     private String playerName = "player";
     private int selectedBunny;
+    private int clickCounter = 0;
     private Image backgroundImage;
     private JLabel jlbplayName = new JLabel();
     private Image bunny1Image;
     private Image bunny2Image;
     private Image carrotImage;
+    private Image bombImage; // Image for the bomb
     private int countCarrot = 0;
+    private int lifeCount = 3;
     int x = 550; // Initial x position of the bunny
     int y = 450; // Initial y position of the bunny
     int moveAmount = 10; // Number of pixels to move per key press
@@ -26,6 +31,10 @@ public class GamePlayPanel extends JPanel implements Runnable {
     private int carrotX;
     private int carrotY;
     private boolean carrotVisible = false;
+
+    private int bombX; // X position of the bomb
+    private int bombY; // Y position of the bomb
+    private boolean bombVisible = false; // Bomb visibility
     private Random random = new Random();
 
     public GamePlayPanel(GameManager gameManager) {
@@ -38,9 +47,12 @@ public class GamePlayPanel extends JPanel implements Runnable {
 
         // Load images
         backgroundImage = new ImageIcon(getClass().getResource("BgGame.png")).getImage();
+        startIcon = new ImageIcon(getClass().getResource("StartIcon.png")).getImage();
+        startIconBounds = new Rectangle(400, 200, 400, 250);  
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
         carrotImage = new ImageIcon(getClass().getResource("carrot.png")).getImage(); // Load carrot image
+        bombImage = new ImageIcon(getClass().getResource("bomb.png")).getImage(); // Load bomb image
 
         // Display player name
         jlbplayName.setText(playerName);
@@ -53,6 +65,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
 
         // Start thread for falling carrot
         Thread carrotThread = new Thread(this);
+        Thread bombThread = new Thread(new BombFallingRunnable());
 //        carrotThread.start();
 
         // Add key listener for movement
@@ -80,13 +93,20 @@ public class GamePlayPanel extends JPanel implements Runnable {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                requestFocusInWindow(); // Request focus on mouse click
-                
-                // Start thread for falling carrot
-//        Thread carrotThread = new Thread(this);
-        carrotThread.start();
+                if(clickCounter == 0) {
+                    requestFocusInWindow(); // Request focus on mouse click
+                   
+                    clickCounter += 1;
+                    
+                    startIcon = null;
+                // Start thread
+                carrotThread.start();
+                bombThread.start();
+                }
             }
         });
+        
+        
 
         // Add focus listener for debugging
         addFocusListener(new FocusAdapter() {
@@ -115,6 +135,17 @@ public class GamePlayPanel extends JPanel implements Runnable {
         carrotVisible = true; // Set carrot to visible
     }
 
+    private void generateBomb() {
+        int panelWidth = getWidth();
+        if (panelWidth <= 50) {
+            bombX = 0; // Position bomb at the left edge
+        } else {
+            bombX = random.nextInt(panelWidth - 50); // Random x position for bomb
+        }
+        bombY = 0; // Start from the top of the panel
+        bombVisible = true; // Set bomb to visible
+    }
+
     // Check if the bunny has collected the carrot
     private void checkCarrotCollection() {
         Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
@@ -129,6 +160,24 @@ public class GamePlayPanel extends JPanel implements Runnable {
         }
     }
 
+    private void checkBombCollection() {
+        Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
+        Rectangle bombRect = new Rectangle(bombX, bombY, 25, 25); // Assuming bomb is 25x25
+        if (bunnyRect.intersects(bombRect)) {
+            if(lifeCount != 1) {
+                lifeCount -= 1;
+                System.out.println("life count = " + lifeCount);
+                bombVisible = false;
+            } else {
+                gameManager.setCountCarrot(countCarrot);
+                gameManager.showGameEnd();
+            }
+            
+            System.out.println("Bomb collected! Game Over!");
+            // You can add game over logic here
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -136,6 +185,10 @@ public class GamePlayPanel extends JPanel implements Runnable {
         // Draw background
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
+        
+        if (startIcon != null) {
+            g.drawImage(startIcon, startIconBounds.x, startIconBounds.y, startIconBounds.width, startIconBounds.height, this);
         }
 
         // Draw the selected bunny at the updated position
@@ -148,6 +201,11 @@ public class GamePlayPanel extends JPanel implements Runnable {
         // Draw the carrot if it is visible
         if (carrotVisible && carrotImage != null) {
             g.drawImage(carrotImage, carrotX, carrotY, 50, 50, this); // Draw carrot at its position
+        }
+
+        // Draw the bomb if it is visible
+        if (bombVisible && bombImage != null) {
+            g.drawImage(bombImage, bombX, bombY, 50, 50, this); // Draw bomb at its position
         }
     }
 
@@ -169,13 +227,13 @@ public class GamePlayPanel extends JPanel implements Runnable {
     public void setCountCarrot() {
         gameManager.setCountCarrot(countCarrot);
     }
-    
 
     private void setCarrotCountText(int countCarrot) {
         jlbcountCorrot.setText(String.valueOf(countCarrot));
-        jlbcountCorrot.setBounds(1130, 30, 50, 50);
+        jlbcountCorrot.setBounds(1120, 30, 50, 50);
         jlbcountCorrot.setForeground(Color.BLACK);
-        add(jlbcountCorrot); 
+        jlbcountCorrot.setFont(new Font("Arial", Font.BOLD, 35)); 
+        add(jlbcountCorrot);
     }
 
     @Override
@@ -196,4 +254,28 @@ public class GamePlayPanel extends JPanel implements Runnable {
             }
         }
     }
-}
+
+    private class BombFallingRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(2000); // Wait for 2 seconds to generate a bomb
+                    generateBomb(); // Generate a new bomb every 2 seconds
+                    while (bombVisible) {
+                        bombY += 5; // Move bomb downwards
+                        if (bombY > getHeight()) {
+                            bombVisible = false; // Hide bomb if it goes off screen
+                        }
+                        checkBombCollection(); // Check if the bomb is collected
+                        repaint(); // Update the panel with new bomb position
+                        Thread.sleep(30); // Control bomb movement speed
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+} 

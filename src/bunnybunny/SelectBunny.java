@@ -25,7 +25,7 @@ public class SelectBunny extends JPanel {
     private GameManager gameManager;
 
     public SelectBunny(GameManager gameManager) {
-        //setLayout(null);
+        
         this.gameManager = gameManager;
         backgroundImage = new ImageIcon(getClass().getResource("BgSelectBunny.png")).getImage();
 
@@ -52,13 +52,13 @@ public class SelectBunny extends JPanel {
         if (bunny1Bounds.contains(mouseX, mouseY)) {
             System.out.println("Select bunny1");
             gameManager.setSelectedBunny(1);
-            gameManager.showGameStart();  
+            gameManager.startGame();  
         }
         
         if (bunny2Bounds.contains(mouseX, mouseY)) {
             System.out.println("Select bunny2");
             gameManager.setSelectedBunny(2);
-            gameManager.showGameStart(); 
+            gameManager.startGame(); 
         }
     }
 

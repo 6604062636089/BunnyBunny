@@ -32,15 +32,13 @@ public class StartMenu extends JPanel{
         jtfInputName.setBorder(roundedBorder);
         jtfInputName.setOpaque(false);//no background
         
-        
         ImageIcon startIcon = new ImageIcon(getClass().getResource("jbtStart.png")); 
         jbtStart.setIcon(startIcon);  
         jbtStart.setHorizontalAlignment(SwingConstants.CENTER); 
         jbtStart.setVerticalAlignment(SwingConstants.CENTER);   
         jbtStart.setContentAreaFilled(false); //no bg
         
-//        Listener spy = new Listener();
-//        jbtStart.addActionListener(spy);
+
          jbtStart.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
