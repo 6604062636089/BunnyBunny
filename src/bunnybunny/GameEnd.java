@@ -27,6 +27,8 @@ public class GameEnd extends JPanel {
         setLayout(null);
         backgroundImage = new ImageIcon(getClass().getResource("BgEndGame.png")).getImage();
         
+        System.out.println("final score");
+        
         this.gameManager = gameManager;
         
         jbtplayAgain.addActionListener(new ActionListener() {
@@ -45,7 +47,7 @@ public class GameEnd extends JPanel {
         
         jlbscore.setFont(new Font("Arial", Font.BOLD, 50));
         jlbscore.setForeground(Color.BLACK);
-        jlbscore.setBounds(580, 310, 100, 100); 
+        
         
         add(jlbscore);
     }
@@ -56,7 +58,11 @@ public class GameEnd extends JPanel {
 
     public void setScore(int countCarrot) {
         score = countCarrot;
-        System.out.println("Your final scores : " + score);
+        if(score < 10) {
+            jlbscore.setBounds(580, 315, 100, 100);
+        } else {
+            jlbscore.setBounds(560, 315, 100, 100); 
+        }
         jlbscore.setText(String.valueOf(score));
     }
 

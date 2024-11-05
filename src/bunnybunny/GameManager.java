@@ -16,7 +16,6 @@ public class GameManager extends JPanel {
     private CardLayout cardLayout;
     private StartMenu startMenu;
     private SelectBunny selectBunny;
-    private GameStartPanel gameStartPanel;
     private GamePlayPanel gamePlayPanel;
     private GameEnd gameEnd;
     private Thread gameThread;
@@ -32,13 +31,11 @@ public class GameManager extends JPanel {
         //create Page
         startMenu = new StartMenu(this);
         selectBunny = new SelectBunny(this);
-        gameStartPanel = new GameStartPanel(this);
         gamePlayPanel = new GamePlayPanel(this);
         gameEnd = new GameEnd(this);
 
         add(startMenu, "StartMenu");
         add(selectBunny, "SelectBunny");
-        add(gameStartPanel, "GameStart");
         add(gamePlayPanel, "GamePlay");
         add(gameEnd, "Game Over");
 

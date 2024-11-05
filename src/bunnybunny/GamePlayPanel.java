@@ -19,6 +19,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
     private Image bunny2Image;
     private Image carrotImage;
     private Image bombImage; // Image for the bomb
+    private Image heartIcon;
     private int countCarrot = 0;
     private int lifeCount = 3;
     int x = 550; // Initial x position of the bunny
@@ -26,6 +27,8 @@ public class GamePlayPanel extends JPanel implements Runnable {
     int moveAmount = 10; // Number of pixels to move per key press
     private boolean positionChanged = false;
     private JLabel jlbcountCorrot = new JLabel();
+    private volatile boolean running = true;
+
 
     // Carrot properties
     private int carrotX;
@@ -51,6 +54,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
         startIconBounds = new Rectangle(400, 200, 400, 250);  
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
+        heartIcon = new ImageIcon(getClass().getResource("heart1.png")).getImage();
         carrotImage = new ImageIcon(getClass().getResource("carrot.png")).getImage(); // Load carrot image
         bombImage = new ImageIcon(getClass().getResource("bomb.png")).getImage(); // Load bomb image
 
@@ -82,7 +86,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
                 }
                 x = Math.max(0, Math.min(x, getWidth() - 135));
                 if (positionChanged) {
-                    System.out.println("Bunny moved to x: " + x + ", y: " + y);
+//                    System.out.println("Bunny moved to x: " + x + ", y: " + y);
                 }
                 checkCarrotCollection(); // Check for carrot collection
                 repaint();
@@ -127,7 +131,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
         int panelWidth = getWidth();
         if (panelWidth <= 50) {
             // Handle case when panel width is too small
-            carrotX = 0; // Position carrot at the left edge
+            carrotX = 550; // Position carrot at the left edge
         } else {
             carrotX = random.nextInt(panelWidth - 50); // Random x position for carrot
         }
@@ -161,22 +165,24 @@ public class GamePlayPanel extends JPanel implements Runnable {
     }
 
     private void checkBombCollection() {
-        Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
-        Rectangle bombRect = new Rectangle(bombX, bombY, 25, 25); // Assuming bomb is 25x25
-        if (bunnyRect.intersects(bombRect)) {
-            if(lifeCount != 1) {
-                lifeCount -= 1;
-                System.out.println("life count = " + lifeCount);
-                bombVisible = false;
-            } else {
-                gameManager.setCountCarrot(countCarrot);
-                gameManager.showGameEnd();
-            }
-            
+    Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
+    Rectangle bombRect = new Rectangle(bombX, bombY, 25, 25);
+    if (bunnyRect.intersects(bombRect)) {
+        if(lifeCount != 1) {
+            lifeCount -= 1;
+            bombVisible = false;
+            System.out.println("life count : " + lifeCount);
+        } else {
+            gameManager.setCountCarrot(countCarrot);
+            gameManager.showGameEnd();
+            running = false; // Stop the threads
+            lifeCount -= 1;
+            System.out.println("life count : " + lifeCount);
             System.out.println("Bomb collected! Game Over!");
-            // You can add game over logic here
         }
     }
+}
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -197,6 +203,18 @@ public class GamePlayPanel extends JPanel implements Runnable {
         } else if (selectedBunny == 2 && bunny2Image != null) {
             g.drawImage(bunny2Image, x, y, 135, 290, this);
         }
+        
+        if (lifeCount == 3 && heartIcon != null) {
+            g.drawImage(heartIcon, 10, 25, 50, 50, this);
+            g.drawImage(heartIcon, 60, 25, 50, 50, this);
+            g.drawImage(heartIcon, 110, 25, 50, 50, this);
+        } else if (lifeCount == 2 && heartIcon != null) {
+            g.drawImage(heartIcon, 10, 25, 50, 50, this);
+            g.drawImage(heartIcon, 60, 25, 50, 50, this);
+        } else if (lifeCount == 1 && heartIcon != null) {
+            g.drawImage(heartIcon, 10, 25, 50, 50, this);
+        }
+        
 
         // Draw the carrot if it is visible
         if (carrotVisible && carrotImage != null) {
@@ -238,7 +256,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             if (carrotVisible) {
                 carrotY += 5; // Move carrot downwards
                 if (carrotY > getHeight()) {
@@ -259,7 +277,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
 
         @Override
         public void run() {
-            while (true) {
+            while (running) {
                 try {
                     Thread.sleep(2000); // Wait for 2 seconds to generate a bomb
                     generateBomb(); // Generate a new bomb every 2 seconds
