@@ -22,6 +22,7 @@ public class GameManager extends JPanel {
     
     private String playerName;
     private int selectedBunny;
+    private int countCarrot;
 
     public GameManager() {
         cardLayout = new CardLayout();
@@ -56,7 +57,14 @@ public class GameManager extends JPanel {
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
     }
-    
+
+    public void setCountCarrot(int countCarrot) {
+        this.countCarrot = countCarrot;
+    }
+
+    public int getCountCarrot() {
+        return countCarrot;
+    }
 
     public void showStartMenu() {
         cardLayout.show(this, "StartMenu");

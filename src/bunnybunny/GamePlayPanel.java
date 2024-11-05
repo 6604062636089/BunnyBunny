@@ -5,7 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.Random;
 
-public class GamePlayPanel extends JPanel {
+public class GamePlayPanel extends JPanel implements Runnable {
 
     private GameManager gameManager;
     private String playerName = "player";
@@ -15,16 +15,18 @@ public class GamePlayPanel extends JPanel {
     private Image bunny1Image;
     private Image bunny2Image;
     private Image carrotImage;
+    private int countCarrot = 0;
     int x = 550; // Initial x position of the bunny
     int y = 450; // Initial y position of the bunny
     int moveAmount = 10; // Number of pixels to move per key press
     private boolean positionChanged = false;
+    private JLabel jlbcountCorrot = new JLabel();
 
     // Carrot properties
     private int carrotX;
     private int carrotY;
     private boolean carrotVisible = false;
-    private Random random = new Random(500);
+    private Random random = new Random();
 
     public GamePlayPanel(GameManager gameManager) {
         this.gameManager = gameManager;
@@ -49,6 +51,10 @@ public class GamePlayPanel extends JPanel {
         // Generate initial carrot position
         generateCarrot();
 
+        // Start thread for falling carrot
+        Thread carrotThread = new Thread(this);
+//        carrotThread.start();
+
         // Add key listener for movement
         addKeyListener(new KeyAdapter() {
             @Override
@@ -70,26 +76,15 @@ public class GamePlayPanel extends JPanel {
             }
         });
 
-        // Timer for falling carrots
-        Timer timer = new Timer(50, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (carrotVisible) {
-                    carrotY += 5; // Move carrot downwards
-                    if (carrotY > getHeight()) {
-                        generateCarrot(); // Regenerate carrot if it goes off screen
-                    }
-                }
-                repaint(); // Repaint the panel to update carrot position
-            }
-        });
-        timer.start(); // Start the timer
-
         // Add mouse listener for focus
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 requestFocusInWindow(); // Request focus on mouse click
+                
+                // Start thread for falling carrot
+//        Thread carrotThread = new Thread(this);
+        carrotThread.start();
             }
         });
 
@@ -122,11 +117,14 @@ public class GamePlayPanel extends JPanel {
 
     // Check if the bunny has collected the carrot
     private void checkCarrotCollection() {
-        Rectangle bunnyRect = new Rectangle(x, y, 135, 290);
-        Rectangle carrotRect = new Rectangle(carrotX, carrotY, 50, 50); // Assuming carrot is 50x50
+        Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
+        Rectangle carrotRect = new Rectangle(carrotX, carrotY, 25, 25); // Assuming carrot is 50x50
         if (bunnyRect.intersects(carrotRect)) {
+            countCarrot += 1;
             System.out.println("Carrot collected!");
+            System.out.println("Your scores : " + countCarrot);
             carrotVisible = false; // Hide carrot after collection
+            setCarrotCountText(countCarrot);
             generateCarrot(); // Generate a new carrot
         }
     }
@@ -166,5 +164,36 @@ public class GamePlayPanel extends JPanel {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public void setCountCarrot() {
+        gameManager.setCountCarrot(countCarrot);
+    }
+    
+
+    private void setCarrotCountText(int countCarrot) {
+        jlbcountCorrot.setText(String.valueOf(countCarrot));
+        jlbcountCorrot.setBounds(1130, 30, 50, 50);
+        jlbcountCorrot.setForeground(Color.BLACK);
+        add(jlbcountCorrot); 
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            if (carrotVisible) {
+                carrotY += 5; // Move carrot downwards
+                if (carrotY > getHeight()) {
+                    generateCarrot(); // Regenerate carrot if it goes off screen
+                }
+                checkCarrotCollection(); // Check if the carrot is collected
+                repaint(); // Update the panel with new carrot position
+            }
+            try {
+                Thread.sleep(30); // Control carrot movement speed
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
