@@ -35,10 +35,9 @@ public class GameEnd extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(!playerName.isEmpty()) {
-//                    gameManager.showSelectBunny(); // call Page SelectBunny
                       gameManager.playAgain();
                 } else {
-//                    JOptionPane.showMessageDialog(StartMenu.this, "Please enter your name.");
+                    //JOptionPane.showMessageDialog(StartMenu.this, "Please enter your name.");
                 }
             }
         });

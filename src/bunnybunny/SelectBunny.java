@@ -27,15 +27,13 @@ public class SelectBunny extends JPanel {
     public SelectBunny(GameManager gameManager) {
         
         this.gameManager = gameManager;
+        
         backgroundImage = new ImageIcon(getClass().getResource("BgSelectBunny.png")).getImage();
-
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
         
-        
         bunny1Bounds = new Rectangle(200, 150, 300, 600); 
         bunny2Bounds = new Rectangle(680, 175, 300, 550);
-        
         
         addMouseListener(new MouseAdapter() {
             @Override

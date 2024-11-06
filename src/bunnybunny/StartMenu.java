@@ -19,24 +19,24 @@ import javax.swing.border.LineBorder;
  */
 public class StartMenu extends JPanel{
     private Image backgroundImage;
-    JTextField jtfInputName = new JTextField(30);
-    JButton jbtStart = new JButton();
+    private JTextField jtfInputName = new JTextField(30);
+    private JButton jbtStart = new JButton();
     
     public StartMenu(GameManager gameManager){
         setLayout(null);
-        jtfInputName.setBounds(680, 300, 250, 40);  //(x, y, width, height)
+        jtfInputName.setBounds(680, 300, 250, 40);//(x, y, width, height)
         jbtStart.setBounds(730, 400, 160, 49);
         
         Border roundedBorder = new LineBorder(Color.BLACK, 3, true); 
         jtfInputName.setHorizontalAlignment(JTextField.CENTER);
         jtfInputName.setBorder(roundedBorder);
-        jtfInputName.setOpaque(false);//no background
+        jtfInputName.setOpaque(false);
         
         ImageIcon startIcon = new ImageIcon(getClass().getResource("jbtStart.png")); 
         jbtStart.setIcon(startIcon);  
         jbtStart.setHorizontalAlignment(SwingConstants.CENTER); 
         jbtStart.setVerticalAlignment(SwingConstants.CENTER);   
-        jbtStart.setContentAreaFilled(false); //no bg
+        jbtStart.setContentAreaFilled(false);
         
 
          jbtStart.addActionListener(new ActionListener() {
@@ -45,7 +45,7 @@ public class StartMenu extends JPanel{
                 String playerName = jtfInputName.getText().trim();
                 if(!playerName.isEmpty()) {
                     gameManager.setPlayerName(playerName);
-                    gameManager.showSelectBunny(); // call Page SelectBunny
+                    gameManager.showSelectBunny();
                 } else {
                     JOptionPane.showMessageDialog(StartMenu.this, "Please enter your name.");
                 }

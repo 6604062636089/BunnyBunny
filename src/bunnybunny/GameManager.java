@@ -28,7 +28,6 @@ public class GameManager extends JPanel {
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
-        //create Page
         startMenu = new StartMenu(this);
         selectBunny = new SelectBunny(this);
         gamePlayPanel = new GamePlayPanel(this);
@@ -85,7 +84,6 @@ public class GameManager extends JPanel {
         cardLayout.show(this, "GamePlay");
         System.out.println("Game Started! with player name : " + playerName);
 
-        //start Thread game
         if (gameThread == null || !gameThread.isAlive()) { //not created || stopped work
             gameThread = new Thread(new GameLoop());
             gameThread.start();
@@ -100,23 +98,19 @@ public class GameManager extends JPanel {
     }
 
     public void playAgain() {
-        // Remove the current GamePlayPanel
+
         remove(gamePlayPanel);
 
-        // Create a new GamePlayPanel and add it to the CardLayout
         gamePlayPanel = new GamePlayPanel(this);
         gamePlayPanel.setPlayerName(playerName);
         add(gamePlayPanel, "GamePlay");
 
-        // Show the SelectBunny panel to choose a bunny for the new game
         cardLayout.show(this, "SelectBunny");
 
-        // Revalidate and repaint to update the UI with the new GamePlayPanel
         revalidate();
         repaint();
     }
 
-    //inner class loop game
     private class GameLoop implements Runnable {
 
         @Override

@@ -18,63 +18,57 @@ public class GamePlayPanel extends JPanel implements Runnable {
     private Image bunny1Image;
     private Image bunny2Image;
     private Image carrotImage;
-    private Image bombImage; // Image for the bomb
+    private Image bombImage; 
     private Image heartIcon;
     private int countCarrot = 0;
     private int lifeCount = 3;
-    int x = 550; // Initial x position of the bunny
-    int y = 450; // Initial y position of the bunny
-    int moveAmount = 10; // Number of pixels to move per key press
+    int x = 550; 
+    int y = 450; 
+    int moveAmount = 10; 
     private boolean positionChanged = false;
     private JLabel jlbcountCorrot = new JLabel();
     private volatile boolean running = true;
 
-    private JLabel countdownLabel = new JLabel(); // Label for countdown timer
-    private int countdownTime = 75; // Initial countdown time in seconds (1 minute 15 seconds)
-    private Timer countdownTimer; // Swing Timer for countdown
+    private JLabel countdownLabel = new JLabel(); 
+    private int countdownTime = 75; 
+    private Timer countdownTimer; 
 
-    // Carrot properties
     private int carrotX;
     private int carrotY;
     private boolean carrotVisible = false;
 
-    private int bombX; // X position of the bomb
-    private int bombY; // Y position of the bomb
-    private boolean bombVisible = false; // Bomb visibility
+    private int bombX; 
+    private int bombY; 
+    private boolean bombVisible = false; 
     private Random random = new Random();
 
     public GamePlayPanel(GameManager gameManager) {
         this.gameManager = gameManager;
-        this.playerName = gameManager.getPlayerName(); // Retrieve player name from GameManager
+        this.playerName = gameManager.getPlayerName();
         setLayout(null);
 
-        // Set focusable and request focus
         setFocusable(true);
 
-        // Load images
         backgroundImage = new ImageIcon(getClass().getResource("BgGame.png")).getImage();
         startIcon = new ImageIcon(getClass().getResource("StartIcon.png")).getImage();
         startIconBounds = new Rectangle(400, 200, 400, 250);
         bunny1Image = new ImageIcon(getClass().getResource("bunny1.png")).getImage();
         bunny2Image = new ImageIcon(getClass().getResource("bunny2.png")).getImage();
         heartIcon = new ImageIcon(getClass().getResource("heart1.png")).getImage();
-        carrotImage = new ImageIcon(getClass().getResource("carrot.png")).getImage(); // Load carrot image
-        bombImage = new ImageIcon(getClass().getResource("bomb.png")).getImage(); // Load bomb image
-
-        // Display player name
+        carrotImage = new ImageIcon(getClass().getResource("carrot.png")).getImage(); 
+        bombImage = new ImageIcon(getClass().getResource("bomb.png")).getImage(); 
+        
         jlbplayName.setText(playerName);
         jlbplayName.setBounds(980, 3, 1000, 100);
         jlbplayName.setForeground(Color.BLACK);
         add(jlbplayName);
 
-        // Display countdown timer
         countdownLabel.setText("Time Left: " + formatTime(countdownTime));
         countdownLabel.setBounds(10, 65, 200, 50);
         countdownLabel.setFont(new Font("Arial", Font.BOLD, 20));
         countdownLabel.setForeground(Color.RED);
         add(countdownLabel);
 
-        // Timer to handle countdown
         countdownTimer = new Timer(1000, e -> {
             countdownTime--;
             countdownLabel.setText("Time Left: " + formatTime(countdownTime));
@@ -82,57 +76,51 @@ public class GamePlayPanel extends JPanel implements Runnable {
                 countdownTimer.stop();
                 gameManager.setCountCarrot(countCarrot);
                 gameManager.showGameEnd();
-                running = false; // Stop the threads
+                running = false; 
                 lifeCount -= 1;
                 System.out.println("Time Out!");
             }
         });
 
-        // Generate initial carrot position
         generateCarrot();
 
-        // Start thread for falling carrot
         Thread carrotThread = new Thread(this);
         Thread bombThread = new Thread(new BombFallingRunnable());
-//        carrotThread.start();
 
-        // Add key listener for movement
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                positionChanged = false; // Reset flag on new key press
+                positionChanged = false; 
                 if (e.getKeyChar() == 'a' || e.getKeyChar() == 'A') {
                     x -= moveAmount;
-                    positionChanged = true; // Mark position as changed
+                    positionChanged = true; 
                 } else if (e.getKeyChar() == 'd' || e.getKeyChar() == 'D') {
                     x += moveAmount;
-                    positionChanged = true; // Mark position as changed
+                    positionChanged = true;
                 }
                 x = Math.max(0, Math.min(x, getWidth() - 135));
                 if (positionChanged) {
-//                    System.out.println("Bunny moved to x: " + x + ", y: " + y);
+                    //System.out.println("Bunny moved to x: " + x + ", y: " + y);
                 }
-                checkCarrotCollection(); // Check for carrot collection
+                checkCarrotCollection(); 
                 repaint();
             }
         });
 
-        // Add mouse listener for focus
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (clickCounter == 0) {
-                    requestFocusInWindow(); // Request focus on mouse click
+                    requestFocusInWindow();
                     clickCounter += 1;
                     startIcon = null;
-                    countdownTimer.start(); // Start countdown timer
+                    countdownTimer.start(); 
                     carrotThread.start();
                     bombThread.start();
                 }
             }
         });
 
-        // Add focus listener for debugging
         addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -152,41 +140,38 @@ public class GamePlayPanel extends JPanel implements Runnable {
         return String.format("%02d:%02d", minutes, secs);
     }
 
-    // Generate carrot at a random position
     private void generateCarrot() {
         int panelWidth = getWidth();
-        if (panelWidth <= 50) {
-            // Handle case when panel width is too small
-            carrotX = 550; // Position carrot at the left edge
+        if (panelWidth <= 50) {  
+            carrotX = 550; 
         } else {
-            carrotX = random.nextInt(panelWidth - 50); // Random x position for carrot
+            carrotX = random.nextInt(panelWidth - 50);
         }
-        carrotY = 0; // Start from the top of the panel
-        carrotVisible = true; // Set carrot to visible
+        carrotY = 0;
+        carrotVisible = true; 
     }
 
     private void generateBomb() {
         int panelWidth = getWidth();
         if (panelWidth <= 50) {
-            bombX = 0; // Position bomb at the left edge
+            bombX = 0; 
         } else {
-            bombX = random.nextInt(panelWidth - 50); // Random x position for bomb
+            bombX = random.nextInt(panelWidth - 50); 
         }
-        bombY = 0; // Start from the top of the panel
-        bombVisible = true; // Set bomb to visible
+        bombY = 0; 
+        bombVisible = true; 
     }
 
-    // Check if the bunny has collected the carrot
     private void checkCarrotCollection() {
         Rectangle bunnyRect = new Rectangle(x, y, 80, 180);
-        Rectangle carrotRect = new Rectangle(carrotX, carrotY, 25, 25); // Assuming carrot is 50x50
+        Rectangle carrotRect = new Rectangle(carrotX, carrotY, 25, 25); 
         if (bunnyRect.intersects(carrotRect)) {
             countCarrot += 1;
             System.out.println("Carrot collected!");
             System.out.println("Your scores : " + countCarrot);
-            carrotVisible = false; // Hide carrot after collection
+            carrotVisible = false; 
             setCarrotCountText(countCarrot);
-            generateCarrot(); // Generate a new carrot
+            generateCarrot(); 
         }
     }
 
@@ -201,7 +186,7 @@ public class GamePlayPanel extends JPanel implements Runnable {
             } else {
                 gameManager.setCountCarrot(countCarrot);
                 gameManager.showGameEnd();
-                running = false; // Stop the threads
+                running = false; 
                 System.out.println("Bomb collected! Game Over!");
             }
         }
@@ -211,7 +196,6 @@ public class GamePlayPanel extends JPanel implements Runnable {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Draw background
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
@@ -220,7 +204,6 @@ public class GamePlayPanel extends JPanel implements Runnable {
             g.drawImage(startIcon, startIconBounds.x, startIconBounds.y, startIconBounds.width, startIconBounds.height, this);
         }
 
-        // Draw the selected bunny at the updated position
         if (selectedBunny == 1 && bunny1Image != null) {
             g.drawImage(bunny1Image, x, y, 135, 290, this);
         } else if (selectedBunny == 2 && bunny2Image != null) {
@@ -238,18 +221,15 @@ public class GamePlayPanel extends JPanel implements Runnable {
             g.drawImage(heartIcon, 12, 25, 50, 50, this);
         }
 
-        // Draw the carrot if it is visible
         if (carrotVisible && carrotImage != null) {
             g.drawImage(carrotImage, carrotX, carrotY, 50, 50, this); // Draw carrot at its position
         }
 
-        // Draw the bomb if it is visible
         if (bombVisible && bombImage != null) {
             g.drawImage(bombImage, bombX, bombY, 50, 50, this); // Draw bomb at its position
         }
     }
-
-    // Setter for player name and selected bunny, updating UI when called
+    
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
         jlbplayName.setText(playerName);
@@ -280,15 +260,15 @@ public class GamePlayPanel extends JPanel implements Runnable {
     public void run() {
         while (running) {
             if (carrotVisible) {
-                carrotY += 5; // Move carrot downwards
+                carrotY += 5; 
                 if (carrotY > getHeight()) {
-                    generateCarrot(); // Regenerate carrot if it goes off screen
+                    generateCarrot(); 
                 }
-                checkCarrotCollection(); // Check if the carrot is collected
-                repaint(); // Update the panel with new carrot position
+                checkCarrotCollection(); 
+                repaint(); 
             }
             try {
-                Thread.sleep(30); // Control carrot movement speed
+                Thread.sleep(30); 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -301,16 +281,16 @@ public class GamePlayPanel extends JPanel implements Runnable {
         public void run() {
             while (running) {
                 try {
-                    Thread.sleep(2000); // Wait for 2 seconds to generate a bomb
-                    generateBomb(); // Generate a new bomb every 2 seconds
+                    Thread.sleep(2000); 
+                    generateBomb();
                     while (bombVisible) {
-                        bombY += 5; // Move bomb downwards
+                        bombY += 5;  
                         if (bombY > getHeight()) {
-                            bombVisible = false; // Hide bomb if it goes off screen
+                            bombVisible = false; 
                         }
-                        checkBombCollection(); // Check if the bomb is collected
-                        repaint(); // Update the panel with new bomb position
-                        Thread.sleep(30); // Control bomb movement speed
+                        checkBombCollection(); 
+                        repaint(); 
+                        Thread.sleep(30); 
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
