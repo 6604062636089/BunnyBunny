@@ -32,7 +32,7 @@ public class StartMenu extends JPanel{
         jtfInputName.setBorder(roundedBorder);
         jtfInputName.setOpaque(false);
         
-        ImageIcon startIcon = new ImageIcon(getClass().getResource("jbtStart.png")); 
+        ImageIcon startIcon = new ImageIcon(getClass().getResource("jbtStart.PNG")); 
         jbtStart.setIcon(startIcon);  
         jbtStart.setHorizontalAlignment(SwingConstants.CENTER); 
         jbtStart.setVerticalAlignment(SwingConstants.CENTER);   
